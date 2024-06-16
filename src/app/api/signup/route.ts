@@ -20,19 +20,20 @@ export async function POST(req: NextRequest) {
 
     // Insert user into public.users table
     const { user } = signUpData;
-    const { error: userInsertError } = await supabase
-      .from("public.users")
-      .insert([{ id: user.id, email: user.email }]);
+      if (user) {
+        await supabase.from("public.users").insert([{ id: user.id, email: user.email }]);
+      } else {
+        throw new Error("User is null");
+      }
 
-    if (userInsertError) {
-      console.error("User Insert Error:", userInsertError);
-      throw userInsertError;
-    }
-
-    console.log("User inserted successfully");
-    return NextResponse.json({ user });
+      if (Error instanceof Error) {
+        console.error("Error in signup API:", Error);
+        return NextResponse.json({ message: Error.message }, { status: 500 });
+      } else {
+        throw new Error("Unknown error");
+      }
   } catch (error) {
     console.error("Error in signup API:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: (error as Error).message }, { status: 500 });
   }
 }

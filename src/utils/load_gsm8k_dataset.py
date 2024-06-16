@@ -1,5 +1,5 @@
 import json
-from datasets import load_dataset
+from datasets import load_dataset # type: ignore
 
 def load_gsm8k_dataset():
     try:

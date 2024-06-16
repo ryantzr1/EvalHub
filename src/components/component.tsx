@@ -1,6 +1,6 @@
 // src/components/component.tsx
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, JSX, SVGProps } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,15 +9,14 @@ import { useRouter } from "next/navigation";
 
 export default function Component() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [metrics, setMetrics] = useState([]);
-  const [selectedMetrics, setSelectedMetrics] = useState([]);
-  const [evaluationResults, setEvaluationResults] = useState([]);
+  const [metrics, setMetrics] = useState<any[]>([]);
+  const [selectedMetrics, setSelectedMetrics] = useState<any[]>([]);
+  const [evaluationResults, setEvaluationResults] = useState<any[]>([]);
   const [apiEndpoint, setApiEndpoint] = useState("");
   const [temperature, setTemperature] = useState(0.0);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
-  // Fetch metrics from the database
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
@@ -30,9 +29,8 @@ export default function Component() {
     fetchMetrics();
   }, []);
 
-  // Check for session in localStorage
   useEffect(() => {
-    const session = JSON.parse(localStorage.getItem('supabase_session'));
+    const session = JSON.parse(localStorage.getItem('supabase_session') || 'null');
     if (session) {
       setUser(session.user);
       const fetchEvaluations = async () => {
@@ -47,21 +45,18 @@ export default function Component() {
       };
       fetchEvaluations();
 
-      // Retrieve selected metrics from localStorage
-      const storedMetrics = JSON.parse(localStorage.getItem('selectedMetrics'));
+      const storedMetrics = JSON.parse(localStorage.getItem('selectedMetrics') || 'null');
       if (storedMetrics) {
         setSelectedMetrics(storedMetrics);
       }
     }
   }, []);
 
-  // Filter metrics based on search term
   const filteredMetrics = useMemo(() => {
     return metrics.filter((metric) => metric.name.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [searchTerm, metrics]);
 
-  // Handle metric selection
-  const handleMetricSelect = (metric) => {
+  const handleMetricSelect = (metric: any) => {
     const updatedMetrics = selectedMetrics.includes(metric)
       ? selectedMetrics.filter((m) => m.id !== metric.id)
       : [...selectedMetrics, metric];
@@ -70,19 +65,15 @@ export default function Component() {
     localStorage.setItem('selectedMetrics', JSON.stringify(updatedMetrics));
   };
 
-  // Handle running evaluation
   const handleRunEvaluation = async () => {
-    const session = JSON.parse(localStorage.getItem('supabase_session'));
+    const session = JSON.parse(localStorage.getItem('supabase_session') || 'null');
     if (!session) {
-      // Store evaluation details in localStorage
       const evaluationDetails = {
         apiEndpoint,
         temperature,
         metrics: selectedMetrics.map((metric) => metric.id),
       };
       localStorage.setItem('pending_evaluation', JSON.stringify(evaluationDetails));
-
-      // Redirect to authentication page if not logged in
       router.push(`/auth?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
@@ -95,7 +86,6 @@ export default function Component() {
         metrics: selectedMetrics.map((metric) => metric.id),
       });
 
-      // Fetch updated evaluations
       const updatedEvaluations = await axios.get(`/api/getEvaluations`, {
         params: { userId: session.user.id },
       });
@@ -104,6 +94,7 @@ export default function Component() {
       console.error("Error running evaluation:", error);
     }
   };
+
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
       {user && <h2 className="text-2xl font-bold mb-4">Welcome, {user.email}</h2>}
@@ -152,7 +143,7 @@ export default function Component() {
               </div>
               <p className="text-gray-500 dark:text-gray-400 mb-4">{metric.description}</p>
               <Button
-                variant={selectedMetrics.includes(metric) ? "primary" : "outline"}
+                variant="outline"
                 onClick={() => handleMetricSelect(metric)}
                 className="w-full"
               >
@@ -210,7 +201,7 @@ export default function Component() {
                   <p className="text-gray-500 dark:text-gray-400 mb-4">Status: {evaluation.status}</p>
                   <p className="text-gray-500 dark:text-gray-400 mb-4">
                     Metrics:&nbsp;
-                    {evaluation.metrics[0].metrics.name}
+                    {evaluation.metrics && evaluation.metrics.map((metric: { metrics: { name: any; }; }) => metric.metrics.name).join(', ')}
                   </p>
                 </CardContent>
               </Card>
@@ -222,7 +213,7 @@ export default function Component() {
   );
 }
 
-function StarIcon(props) {
+function StarIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

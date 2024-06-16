@@ -69,9 +69,9 @@ export async function POST(req: NextRequest) {
 
     // Filter out metrics that are already associated with this evaluation
     const existingMetricIds = existingMetrics.map(metric => metric.metric_id);
-    const newMetrics = metrics.filter(metric => !existingMetricIds.includes(metric));
+    const newMetrics = metrics.filter((metric: any) => !existingMetricIds.includes(metric));
 
-    const metricInserts = newMetrics.map(metric => ({
+    const metricInserts = newMetrics.map((metric: any) => ({
       evaluation_id: evaluationId,
       metric_id: metric
     }));
@@ -96,6 +96,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ evaluationId });
   } catch (error) {
     console.error("Error in addEvaluation API:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: error }, { status: 500 });
   }
 }

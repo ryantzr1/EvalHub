@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const { user } = data;
     const { error: userInsertError } = await supabase
       .from("users")
-      .upsert([{ id: user.id, email: user.email }], { onConflict: ['id'] });
+      .upsert([{ id: user.id, email: user.email }], { onConflict: 'id' });
 
     if (userInsertError) {
       console.error("User Insert Error:", userInsertError);

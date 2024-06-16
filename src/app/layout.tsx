@@ -16,7 +16,7 @@ const arimo = Arimo({
   variable: '--font-arimo',
 })
 
-export default function Layout({ children }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={rubik.variable + ' ' + arimo.variable}>

@@ -1,13 +1,12 @@
 // src/app/auth/page.tsx
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
-import { supabase } from "../../supabaseClient";
 
-export default function Auth() {
+function Auth() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSignUp, setIsSignUp] = useState(false);
@@ -17,8 +16,8 @@ export default function Auth() {
 
     useEffect(() => {
         const checkPendingEvaluation = async () => {
-            const session = JSON.parse(localStorage.getItem('supabase_session'));
-            const pendingEvaluation = JSON.parse(localStorage.getItem('pending_evaluation'));
+            const session = JSON.parse(localStorage.getItem('supabase_session') || "null");
+            const pendingEvaluation = JSON.parse(localStorage.getItem('pending_evaluation') || "null");
 
             if (session && pendingEvaluation) {
                 try {
@@ -48,20 +47,6 @@ export default function Auth() {
             if (response.data.session) {
                 // Save session data in localStorage
                 localStorage.setItem('supabase_session', JSON.stringify(response.data.session));
-
-                // Check for pending evaluation and handle it
-                const pendingEvaluation = JSON.parse(localStorage.getItem('pending_evaluation'));
-                if (pendingEvaluation) {
-                    await axios.post("/api/addEvaluation", {
-                        userId: response.data.session.user.id,
-                        apiEndpoint: pendingEvaluation.apiEndpoint,
-                        temperature: pendingEvaluation.temperature,
-                        metrics: pendingEvaluation.metrics,
-                    });
-
-                    // Clear the pending evaluation from localStorage
-                    localStorage.removeItem('pending_evaluation');
-                }
 
                 // Redirect to the original page
                 router.push(redirect);
@@ -99,5 +84,13 @@ export default function Auth() {
                 {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
             </Button>
         </div>
+    );
+}
+
+export default function AuthPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <Auth />
+        </Suspense>
     );
 }

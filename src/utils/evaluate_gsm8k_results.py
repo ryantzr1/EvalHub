@@ -1,6 +1,6 @@
 import json
 import re
-import evaluate
+import evaluate # type: ignore
 
 def extract_final_answer(text):
     # Try strict match regex pattern first
