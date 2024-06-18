@@ -21,5 +21,11 @@ EvalHub is a platform designed to help you discover and review evaluation metric
 
 ## Contributing
 
-Disclaimer: This platform is a work in progress. Contributions are welcome!
-Feature Requests: If you have an idea for a new feature, please open an issue to discuss it before starting development.
+- **Disclaimer**: This platform is a work in progress. Contributions are welcome!
+- **Feature Requests**: If you have an idea for a new feature, please open an issue to discuss it before starting development.
+
+## Acknowledgements
+
+- Special thanks to [EleutherAI](https://www.eleuther.ai/) for their [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness/tree/main) repository, which inspired the creation of this platform.
+- We appreciate the contributions of all open-source developers and researchers whose work is referenced and utilized within this platform.
+- Thank you to our users and contributors for their valuable feedback and support in improving EvalHub.
