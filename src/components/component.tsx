@@ -51,6 +51,9 @@ export default function Component() {
             Explore various evaluation metrics here and then head over to the
             <a href="https://github.com/EleutherAI/lm-evaluation-harness/tree/main" target="_blank" rel="noopener noreferrer" className="text-blue-500 dark:text-blue-300"> lm-evaluation-harness</a> repository by EleutherAI to evaluate your models.
           </p>
+          <div className="text-center text-gray-600 dark:text-gray-400">
+            <p className="mb-4">*Disclaimer: This platform is a work in progress. <a href="https://github.com/ryantzr1/EvalHub" target="_blank" rel="noopener noreferrer" className="text-blue-500 dark:text-blue-300">Contributions are welcome here</a>.</p>
+          </div>
         </div>
       </header>
       {user && <h2 className="text-2xl font-bold mb-4 text-green-600 dark:text-green-400">Welcome, {user.email} 🎉</h2>}
@@ -106,7 +109,9 @@ export default function Component() {
           </Card>
         ))}
       </div>
-      <footer className="mt-16 text-center text-gray-600 dark:text-gray-400">
+
+
+      <footer className="mt-8 text-center text-gray-600 dark:text-gray-400">
         <p>&copy; 2024 EvalHub</p>
       </footer>
     </div>
