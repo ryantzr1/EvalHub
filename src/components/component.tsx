@@ -1,11 +1,22 @@
 // src/components/component.tsx
 "use client";
-import { useState, useEffect, useMemo, JSX, SVGProps } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+
+const taskCategories = {
+  "Language Understanding": ["aclue", "anli", "blimp", "ceval", "glue", "siqa", "super_glue"],
+  "Mathematical and Logical Reasoning": ["arithmetic", "asdiv", "gsm8k", "hendrycks_math", "logiqa", "mathqa", "minerva_math"],
+  "Question Answering": ["aexams", "arc", "babi", "coqa", "csatqa", "drop", "headqa", "lambada", "medmcqa", "medqa", "nq_open", "openbookqa", "pubmedqa", "qa4mre", "qasper", "race", "sciq", "squad_completion", "squadv2", "triviaqa", "truthfulqa"],
+  "Commonsense Reasoning": ["agieval", "commonsense_qa", "hellaswag", "piqa", "winogrande"],
+  "Cross-lingual and Multilingual Tasks": ["basqueglue", "belebele", "cmmlu", "eus_exams", "eus_proficiency", "eus_reading", "eus_trivia", "kobest", "kormedmcqa", "lambada_multilingual", "lambada_multilingual_stablelm", "mgsm", "okapi/arc_multilingual", "okapi/hellaswag_multilingual", "okapi/mmlu_multilingual", "okapi/truthfulqa_multilingual", "paws-x", "translation", "xcopa", "xnli", "xnli_eu", "xstorycloze", "xwinograd"],
+  "Ethics and Bias": ["crows_pairs", "eq_bench", "hendrycks_ethics", "realtoxicityprompts", "toxigen"],
+  "Specialized Domains": ["code_x_glue", "copal_id", "fda", "headqa", "ifeval", "logiqa2", "prost", "sciq", "tmmluplus", "toxigen"],
+  "Miscellaneous": ["bigbench", "benchmarks", "bbh", "gpt_3", "mmlu", "model_written_evals", "pile", "pile_10k", "scrolls", "swde", "tinyBenchmarks", "unitxt"]
+};
 
 export default function Component() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,6 +26,7 @@ export default function Component() {
   const [apiEndpoint, setApiEndpoint] = useState("");
   const [temperature, setTemperature] = useState(0.0);
   const [user, setUser] = useState<any>(null);
+  const [category, setCategory] = useState("all");
   const router = useRouter();
 
   useEffect(() => {
@@ -30,7 +42,7 @@ export default function Component() {
   }, []);
 
   useEffect(() => {
-    const session = JSON.parse(localStorage.getItem('supabase_session') || 'null');
+    const session = JSON.parse(localStorage.getItem("supabase_session") || "null");
     if (session) {
       setUser(session.user);
       const fetchEvaluations = async () => {
@@ -45,7 +57,7 @@ export default function Component() {
       };
       fetchEvaluations();
 
-      const storedMetrics = JSON.parse(localStorage.getItem('selectedMetrics') || 'null');
+      const storedMetrics = JSON.parse(localStorage.getItem("selectedMetrics") || "null");
       if (storedMetrics) {
         setSelectedMetrics(storedMetrics);
       }
@@ -53,8 +65,12 @@ export default function Component() {
   }, []);
 
   const filteredMetrics = useMemo(() => {
-    return metrics.filter((metric) => metric.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [searchTerm, metrics]);
+    return metrics.filter((metric) => {
+      const matchesSearch = metric.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = category === "all" || taskCategories[category].map(task => task.toLowerCase()).includes(metric.name.toLowerCase());
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchTerm, metrics, category]);
 
   const handleMetricSelect = (metric: any) => {
     const updatedMetrics = selectedMetrics.includes(metric)
@@ -62,18 +78,18 @@ export default function Component() {
       : [...selectedMetrics, metric];
 
     setSelectedMetrics(updatedMetrics);
-    localStorage.setItem('selectedMetrics', JSON.stringify(updatedMetrics));
+    localStorage.setItem("selectedMetrics", JSON.stringify(updatedMetrics));
   };
 
   const handleRunEvaluation = async () => {
-    const session = JSON.parse(localStorage.getItem('supabase_session') || 'null');
+    const session = JSON.parse(localStorage.getItem("supabase_session") || "null");
     if (!session) {
       const evaluationDetails = {
         apiEndpoint,
         temperature,
         metrics: selectedMetrics.map((metric) => metric.id),
       };
-      localStorage.setItem('pending_evaluation', JSON.stringify(evaluationDetails));
+      localStorage.setItem("pending_evaluation", JSON.stringify(evaluationDetails));
       router.push(`/auth?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
@@ -97,8 +113,13 @@ export default function Component() {
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
+      <header className="mb-12">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-2">EvalHub</h1>
+          <p className="text-xl mb-4">Discover and Benchmark Evaluation Metrics</p>
+        </div>
+      </header>
       {user && <h2 className="text-2xl font-bold mb-4">Welcome, {user.email}</h2>}
-      <h1 className="text-3xl font-bold mb-8">Marketplace for Evaluation Metrics</h1>
       <div className="mb-8">
         <Input
           type="search"
@@ -109,6 +130,20 @@ export default function Component() {
         />
       </div>
       <div className="mb-8">
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="w-full max-w-md bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
+        >
+          <option value="all">All Categories</option>
+          {Object.keys(taskCategories).map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="mb-8">
         <Input
           type="url"
           placeholder="API Endpoint"
@@ -117,7 +152,6 @@ export default function Component() {
           className="w-full max-w-md bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
         />
       </div>
-
       <div className="mb-8">
         <Input
           type="number"
@@ -136,10 +170,6 @@ export default function Component() {
             <CardContent className="p-4">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-medium">{metric.name}</h3>
-                <div className="flex items-center gap-1 text-yellow-500">
-                  <StarIcon className="w-4 h-4" />
-                  <span>{metric.rating}</span>
-                </div>
               </div>
               <p className="text-gray-500 dark:text-gray-400 mb-4">{metric.description}</p>
               <Button
@@ -165,10 +195,6 @@ export default function Component() {
                 <CardContent className="p-4">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-lg font-medium">{metric.name}</h3>
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      <StarIcon className="w-4 h-4" />
-                      <span>{metric.rating}</span>
-                    </div>
                   </div>
                   <p className="text-gray-500 dark:text-gray-400 mb-4">{metric.description}</p>
                   <Button variant="outline" onClick={() => handleMetricSelect(metric)} className="w-full">
@@ -209,25 +235,9 @@ export default function Component() {
           </div>
         </div>
       )}
+      <footer className="mt-16 text-center text-gray-600 dark:text-gray-400">
+        <p>&copy; 2024 EvalHub. All rights reserved.</p>
+      </footer>
     </div>
-  );
-}
-
-function StarIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-    </svg>
   );
 }
