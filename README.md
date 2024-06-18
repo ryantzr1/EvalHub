@@ -1,6 +1,6 @@
 # EvalHub 🚀
 
-**Evaluate your machine learning models against academic benchmarks with just a few clicks!**
+**Discover and Review Evaluation Metrics for Your AI Models!**
 
 ## Description
 
