@@ -20,8 +20,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "downlevelIteration": true // Add this line
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/signin/signin.js", "src/app/api/signup/signup.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/signin/signin.js", "src/app/api/signup/signup.js", "src/data/taskCategories.js", "src/data/updateCategories.mjs"],
   "exclude": ["node_modules"]
 }
