@@ -14,26 +14,34 @@ export default function Component() {
   const [useCase, setUseCase] = useState("all");
   const [useCases, setUseCases] = useState<string[]>([]);
 
-  useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        const response = await axios.get("/api/getMetrics");
-        setMetrics(response.data);
-      } catch (error) {
-        console.error("Error fetching metrics:", error);
-      }
-    };
-    fetchMetrics();
+  const fetchMetrics = async () => {
+    try {
+      const response = await axios.get("/api/getMetrics");
+      setMetrics(response.data);
+    } catch (error) {
+      console.error("Error fetching metrics:", error);
+    }
+  };
 
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get("/api/getCategories");
-        setCategories(response.data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get("/api/getCategories");
+      setCategories(response.data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMetrics();
     fetchCategories();
+
+    const interval = setInterval(() => {
+      fetchMetrics();
+      fetchCategories();
+    }, 86400000); // Fetch data every day
+
+    return () => clearInterval(interval); // Clean up interval on unmount
   }, []);
 
   useEffect(() => {
@@ -50,6 +58,7 @@ export default function Component() {
       .filter(Boolean)
     )];
     setUseCases(filteredUseCases);
+    setUseCase("all"); // Reset use case to "All Use Cases" when category changes
   }, [category, metrics]);
 
   const filteredMetrics = useMemo(() => {
