@@ -76,14 +76,11 @@ export default function Component() {
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-2 text-blue-600 dark:text-blue-400">EvalHub 🚀</h1>
           <p className="text-xl mb-4 text-gray-700 dark:text-gray-300">
-            Discover and Review Evaluation Metrics for your models.
+            Discover Evaluation Benchmarks for your models.
           </p>
           <p className="text-md mb-4 text-gray-600 dark:text-gray-400">
             Explore various evaluation metrics here and then head over to the
             <a href="https://github.com/EleutherAI/lm-evaluation-harness/tree/main" target="_blank" rel="noopener noreferrer" className="text-blue-500 dark:text-blue-300"> lm-evaluation-harness</a> repository by EleutherAI to evaluate your models.
-          </p>
-          <p className="text-md mb-4 text-gray-600 dark:text-gray-400">
-            Click on a dataset card to go to the corresponding HuggingFace dataset page.
           </p>
         </div>
       </header>
