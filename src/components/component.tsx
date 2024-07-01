@@ -83,7 +83,7 @@ export default function Component() {
     });
   }, [metrics, searchTerm, category, useCase]);
 
-  const handleBenchmarkSubmit = async (e) => {
+  const handleBenchmarkSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     try {
       let categoryId = newBenchmark.category;
