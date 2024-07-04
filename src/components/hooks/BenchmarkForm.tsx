@@ -1,6 +1,10 @@
+"use client";
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+
 import {
   Dialog,
   DialogContent,
@@ -17,6 +21,7 @@ interface BenchmarkFormProps {
 }
 
 const BenchmarkForm: React.FC<BenchmarkFormProps> = ({ categories, fetchMetrics }) => {
+
   const [newBenchmark, setNewBenchmark] = useState({
     name: "",
     description: "",

@@ -21,7 +21,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <body className={rubik.variable + ' ' + arimo.variable}>
         {children}
         <Analytics />
-
       </body>
     </html>
   )

@@ -16,7 +16,7 @@ export const useFetchMetrics = () => {
   const fetchMetrics = useCallback(async () => {
     try {
       const response = await axios.get("/api/getMetrics");
-      console.log(response.data);
+      console.log
       setMetrics(response.data);
     } catch (error) {
       console.error("Error fetching metrics:", error);
