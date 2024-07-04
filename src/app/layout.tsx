@@ -1,6 +1,8 @@
 import { Rubik } from 'next/font/google'
 import { Arimo } from 'next/font/google'
 import './globals.css'
+import { Analytics } from "@vercel/analytics/react"
+
 
 const rubik = Rubik({
   subsets: ['latin'],
@@ -18,6 +20,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <body className={rubik.variable + ' ' + arimo.variable}>
         {children}
+        <Analytics />
+
       </body>
     </html>
   )
