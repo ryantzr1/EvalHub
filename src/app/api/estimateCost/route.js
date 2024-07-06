@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import tiktoken from "tiktoken";
 
 export async function POST(request) {
@@ -30,7 +28,7 @@ export async function POST(request) {
       );
     }
 
-    // Fetch model costs (Ensure model_prices.json is accessible)
+    // Fetch model costs
     let modelCosts;
     try {
       const MODEL_COSTS_URL =
