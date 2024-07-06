@@ -18,6 +18,7 @@ export async function POST(request) {
       try {
         dataset = JSON.parse(huggingfaceDataset);
       } catch (error) {
+        console.error("Error parsing Hugging Face dataset:", error);
         return NextResponse.json(
           { error: "Error parsing Hugging Face dataset: " + error.message },
           { status: 400 }
@@ -41,6 +42,7 @@ export async function POST(request) {
       }
       modelCosts = await response.json();
     } catch (error) {
+      console.error("Error fetching model costs:", error);
       return NextResponse.json(
         { error: "Error fetching model costs: " + error.message },
         { status: 500 }
@@ -48,6 +50,7 @@ export async function POST(request) {
     }
 
     if (!modelCosts[model]) {
+      console.error("Invalid model specified:", model);
       return NextResponse.json(
         { error: "Invalid model specified" },
         { status: 400 }
