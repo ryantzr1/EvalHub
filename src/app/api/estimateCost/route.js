@@ -4,24 +4,42 @@ import fetch from "node-fetch";
 import path from "path";
 import { promises as fs } from "fs";
 
-// Function to fetch model costs from the JSON file
-const fetchModelCosts = async () => {
-  const filePath = path.resolve("src/lib/model_prices.json");
-
+// Function to fetch model costs
+async function fetchModelCosts() {
   try {
-    const fileContent = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(fileContent);
+    const MODEL_COSTS_URL =
+      "https://raw.githubusercontent.com/ryantzr1/EvalHub/main/src/lib/model_prices.json";
+
+    const response = await fetch(MODEL_COSTS_URL);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
   } catch (error) {
-    console.error("Error reading model prices file:", error);
-    throw new Error("Failed to load model prices.");
+    console.error("Error fetching model costs:", error);
+    throw new Error("Failed to load model costs.");
   }
-};
+}
+
+// Use a simple in-memory cache to avoid fetching the costs for every request
+let cachedModelCosts = null;
+let lastFetchTime = 0;
+const CACHE_TTL = 3600000; // 1 hour in milliseconds
+
+async function getModelCosts() {
+  const now = Date.now();
+  if (!cachedModelCosts || now - lastFetchTime > CACHE_TTL) {
+    cachedModelCosts = await fetchModelCosts();
+    lastFetchTime = now;
+  }
+  return cachedModelCosts;
+}
 
 export async function POST(request) {
   const formData = await request.formData();
   const file = formData.get("file");
   const huggingfaceDataset = formData.get("huggingface_dataset");
-  const model = formData.get("model") || "gpt-3.5-turbo";
+  const model = formData.get("model") || "gpt-4";
 
   let dataset;
   if (file) {
@@ -48,14 +66,20 @@ export async function POST(request) {
     );
   }
 
-  // Fetch real-time model costs
   let modelCosts;
   try {
-    modelCosts = await fetchModelCosts();
+    modelCosts = await getModelCosts();
   } catch (error) {
     return NextResponse.json(
       { error: "Error fetching model costs: " + error.message },
       { status: 500 }
+    );
+  }
+
+  if (!modelCosts[model]) {
+    return NextResponse.json(
+      { error: "Invalid model specified" },
+      { status: 400 }
     );
   }
 
@@ -66,10 +90,7 @@ export async function POST(request) {
     totalTokens += encoder.encode(text).length;
   }
 
-  const modelCost = modelCosts[model];
-  const totalCost = modelCost
-    ? totalTokens * modelCost.input_cost_per_token
-    : 0;
+  const totalCost = totalTokens * modelCosts[model].input_cost_per_token;
 
   return NextResponse.json({
     model,
