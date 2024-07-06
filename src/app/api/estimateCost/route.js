@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import tiktoken from "tiktoken";
+import tiktoken from "tiktoken/lite";
 import path from "path";
 import fs from "fs";
 
