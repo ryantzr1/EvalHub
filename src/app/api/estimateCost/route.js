@@ -5,10 +5,7 @@ import fs from "fs";
 
 export const revalidate = 0;
 
-const WASM_PATH = path.resolve(
-  process.cwd(),
-  ".next/server/chunks/tiktoken_bg.wasm"
-);
+const WASM_PATH = path.resolve(process.cwd(), ".next/server/chunks");
 
 export async function POST(request) {
   try {
