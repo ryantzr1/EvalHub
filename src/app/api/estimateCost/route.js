@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 import tiktoken from "tiktoken";
+import path from "path";
+import fs from "fs";
 
 export const revalidate = 0;
 
+const WASM_PATH = path.resolve(
+  process.cwd(),
+  ".next/server/chunks/tiktoken_bg.wasm"
+);
+
 export async function POST(request) {
   try {
+    const wasm = fs.readFileSync(WASM_PATH);
     const formData = await request.formData();
     const file = formData.get("file");
     const huggingfaceDataset = formData.get("huggingface_dataset");
@@ -18,7 +26,6 @@ export async function POST(request) {
       try {
         dataset = JSON.parse(huggingfaceDataset);
       } catch (error) {
-        console.error("Error parsing Hugging Face dataset:", error);
         return NextResponse.json(
           { error: "Error parsing Hugging Face dataset: " + error.message },
           { status: 400 }
@@ -57,7 +64,7 @@ export async function POST(request) {
       );
     }
 
-    const encoder = tiktoken.encoding_for_model(model);
+    const encoder = tiktoken.encoding_for_model(model, { wasm });
 
     let totalTokens = 0;
     for (const text of dataset) {
