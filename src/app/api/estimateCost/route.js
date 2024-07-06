@@ -124,9 +124,3 @@ export async function OPTIONS(request) {
   const response = new NextResponse(null, { status: 204 });
   return setCorsHeaders(response);
 }
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
