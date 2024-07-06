@@ -2,17 +2,19 @@ import { NextResponse } from "next/server";
 import tiktoken from "tiktoken/lite";
 import path from "path";
 import fs from "fs";
+import wasm from "tiktoken/lite/tiktoken_bg.wasm?module";
 
 export const revalidate = 0;
 
-const WASM_PATH = path.resolve(
-  process.cwd(),
-  ".next/server/chunks/tiktoken_bg.wasm"
-);
+// const WASM_PATH = path.resolve(
+//   process.cwd(),
+//   ".next/server/chunks/tiktoken_bg.wasm"
+// );
 
 export async function POST(request) {
   try {
-    const wasm = fs.readFileSync(WASM_PATH);
+    await init((imports) => WebAssembly.instantiate(wasm, imports));
+
     const formData = await request.formData();
     const file = formData.get("file");
     const huggingfaceDataset = formData.get("huggingface_dataset");
