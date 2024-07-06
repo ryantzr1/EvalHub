@@ -7,7 +7,7 @@ export const revalidate = 0;
 
 const WASM_PATH = path.resolve(
   process.cwd(),
-  ".next/server/wasm/tiktoken_bg.wasm"
+  ".next/server/chunks/tiktoken_bg.wasm"
 );
 
 export async function POST(request) {
