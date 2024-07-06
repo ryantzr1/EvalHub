@@ -6,7 +6,7 @@ import fetch from "node-fetch";
 async function fetchModelCosts() {
   try {
     const MODEL_COSTS_URL =
-      "https://www.raw.githubusercontent.com/ryantzr1/EvalHub/main/src/lib/model_prices.json";
+      "https://raw.githubusercontent.com/ryantzr1/EvalHub/main/src/lib/model_prices.json";
 
     const response = await fetch(MODEL_COSTS_URL);
     if (!response.ok) {
