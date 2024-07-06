@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import tiktoken from "tiktoken";
 
+export const revalidate = 0;
+
 export async function POST(request) {
   try {
     const formData = await request.formData();
