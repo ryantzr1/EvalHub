@@ -56,11 +56,13 @@ export default function CostEstimator() {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFile(e.target.files[0]);
+      setDatasetUrl(""); // Clear dataset URL if a file is selected
     }
   };
 
   const handleDatasetUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
     setDatasetUrl(e.target.value);
+    setFile(null); // Clear file if a dataset URL is entered
   };
 
   const handleModelChange = (value: string) => {

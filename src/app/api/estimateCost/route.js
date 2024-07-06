@@ -8,7 +8,7 @@ export async function POST(request) {
     const formData = await request.formData();
     const file = formData.get("file");
     const huggingfaceDataset = formData.get("huggingface_dataset");
-    const model = formData.get("model") || "gpt-4";
+    const model = formData.get("model") || "gpt-3.5-turbo";
 
     let dataset;
     if (file) {
