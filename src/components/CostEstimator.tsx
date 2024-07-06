@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import {
   Select,
@@ -9,17 +9,24 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
+type ModelOptions = string[];
+
+interface EstimateCostResponse {
+  model: string;
+  total_token_count: number;
+  total_cost: number;
+}
+
 export default function CostEstimator() {
-  const [file, setFile] = useState(null);
-  const [datasetUrl, setDatasetUrl] = useState("");
-  const [model, setModel] = useState("gpt-3.5-turbo");
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [modelOptions, setModelOptions] = useState([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [datasetUrl, setDatasetUrl] = useState<string>("");
+  const [model, setModel] = useState<string>("gpt-3.5-turbo");
+  const [result, setResult] = useState<EstimateCostResponse | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [modelOptions, setModelOptions] = useState<ModelOptions>([]);
 
   useEffect(() => {
-    // Fetch model options from the JSON file via API
     const fetchModelOptions = async () => {
       try {
         const response = await axios.get("/api/modelPrices");
@@ -33,20 +40,34 @@ export default function CostEstimator() {
     fetchModelOptions();
   }, []);
 
-  const fetchDatasetRows = async (url) => {
+  const fetchDatasetRows = async (url: string): Promise<string[]> => {
     try {
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      return data.rows.map((item) => item.row.text);
+      return data.rows.map((item: any) => item.row.text);
     } catch (error) {
       throw new Error("Error fetching dataset rows: " + error.message);
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleDatasetUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setDatasetUrl(e.target.value);
+  };
+
+  const handleModelChange = (value: string) => {
+    setModel(value);
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -72,13 +93,13 @@ export default function CostEstimator() {
     formData.append("model", model);
 
     try {
-      const response = await axios.post("/api/estimateCost", formData, {
+      const response = await axios.post<EstimateCostResponse>("/api/estimateCost", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
       setResult(response.data);
-    } catch (error) {
+    } catch (error: any) {
       setError(
         error.response?.data?.error ||
         "An error occurred while estimating the cost."
@@ -101,7 +122,7 @@ export default function CostEstimator() {
           <input
             type="file"
             id="file"
-            onChange={(e) => setFile(e.target.files[0])}
+            onChange={handleFileChange}
             className="mt-1 block w-full text-sm text-gray-500
                        file:mr-4 file:py-2 file:px-4
                        file:rounded-full file:border-0
@@ -121,7 +142,7 @@ export default function CostEstimator() {
             type="text"
             id="datasetUrl"
             value={datasetUrl}
-            onChange={(e) => setDatasetUrl(e.target.value)}
+            onChange={handleDatasetUrlChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
             placeholder="e.g., https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=0"
           />
@@ -133,7 +154,7 @@ export default function CostEstimator() {
           >
             Select Model
           </label>
-          <Select onValueChange={(value) => setModel(value)} value={model}>
+          <Select onValueChange={handleModelChange} value={model}>
             <SelectTrigger className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 flex items-center justify-between px-4 py-2 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300">
               {model}
             </SelectTrigger>
