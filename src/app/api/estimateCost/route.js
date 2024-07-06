@@ -35,6 +35,13 @@ async function getModelCosts() {
   return cachedModelCosts;
 }
 
+export async function GET(request) {
+  return NextResponse.json(
+    { message: "GET request received" },
+    { status: 200 }
+  );
+}
+
 export async function POST(request) {
   const formData = await request.formData();
   const file = formData.get("file");
