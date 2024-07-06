@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import tiktoken from "tiktoken";
 
 export async function POST(request) {
   try {
