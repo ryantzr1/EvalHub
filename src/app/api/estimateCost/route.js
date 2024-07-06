@@ -29,9 +29,7 @@ export async function POST(request) {
     dataset = fileContent.split("\n");
   } else if (huggingfaceDataset) {
     try {
-      const response = await fetch(
-        `https://huggingface.co/datasets/${huggingfaceDataset}/raw/main/train.json`
-      );
+      const response = await fetch(huggingfaceDataset);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
