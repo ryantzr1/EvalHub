@@ -1,11 +1,10 @@
-// page.tsx
+import Layout from "@/components/Layout"
 import Component from "@/components/component"
-
 
 export default function Page() {
   return (
-    <div>
+    <Layout>
       <Component />
-    </div>
+    </Layout>
   )
 }

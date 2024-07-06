@@ -23,6 +23,6 @@
     },
     "downlevelIteration": true // Add this line
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/signin/signin.js", "src/app/api/signup/signup.js", "src/data/taskCategories.js", "src/data/updateCategories.mjs"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/signin/signin.js", "src/app/api/signup/signup.js", "src/data/taskCategories.js", "src/data/updateCategories.mjs", "src/supabaseClient.js", "src/components/hooks/useFetchMetrics.js", "src/components/hooks/useFetchMetrics.js", "src/components/hooks/useFetchMetrics.js", "src/components/hooks/useFetchMetrics.js", "src/components/hooks/useFetchMetrics.js"],
   "exclude": ["node_modules"]
 }
