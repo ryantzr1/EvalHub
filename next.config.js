@@ -10,9 +10,9 @@ module.exports = {
             {
               from: path.resolve(
                 __dirname,
-                "node_modules/tiktoken/wasm/tiktoken_bg.wasm"
+                "node_modules/tiktoken/tiktoken_bg.wasm"
               ),
-              to: path.resolve(__dirname, ".next/server/chunks"),
+              to: path.resolve(__dirname, ".next/server/wasm"),
             },
           ],
         })
