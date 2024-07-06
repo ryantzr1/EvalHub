@@ -3,6 +3,11 @@ const path = require("path");
 
 module.exports = {
   webpack: (config, { isServer }) => {
+    config.experiments = {
+      asyncWebAssembly: true,
+      layers: true,
+    };
+
     if (isServer) {
       config.plugins.push(
         new CopyWebpackPlugin({
@@ -12,7 +17,7 @@ module.exports = {
                 __dirname,
                 "node_modules/tiktoken/tiktoken_bg.wasm"
               ),
-              to: path.resolve(__dirname, ".next/server/wasm"),
+              to: path.resolve(__dirname, ".next/server/chunks"),
             },
           ],
         })
