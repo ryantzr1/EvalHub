@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import tiktoken from "tiktoken";
 import fetch from "node-fetch";
-import path from "path";
-import { promises as fs } from "fs";
 
 // Function to fetch model costs
 async function fetchModelCosts() {
@@ -54,71 +52,81 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const formData = await request.formData();
-  const file = formData.get("file");
-  const huggingfaceDataset = formData.get("huggingface_dataset");
-  const model = formData.get("model") || "gpt-4";
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file");
+    const huggingfaceDataset = formData.get("huggingface_dataset");
+    const model = formData.get("model") || "gpt-4";
 
-  let dataset;
-  if (file) {
-    const fileContent = await file.text();
-    dataset = fileContent.split("\n");
-  } else if (huggingfaceDataset) {
-    try {
-      const response = await fetch(huggingfaceDataset);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    let dataset;
+    if (file) {
+      const fileContent = await file.text();
+      dataset = fileContent.split("\n");
+    } else if (huggingfaceDataset) {
+      try {
+        dataset = JSON.parse(huggingfaceDataset);
+      } catch (error) {
+        return NextResponse.json(
+          { error: "Error parsing Hugging Face dataset: " + error.message },
+          { status: 400 }
+        );
       }
-      const jsonData = await response.json();
-      dataset = jsonData.map((item) => item.text);
-    } catch (error) {
+    } else {
       return NextResponse.json(
-        { error: "Error loading Hugging Face dataset: " + error.message },
+        { error: "No file or dataset provided" },
         { status: 400 }
       );
     }
-  } else {
-    return NextResponse.json(
-      { error: "No file or dataset provided" },
-      { status: 400 }
-    );
-  }
 
-  let modelCosts;
-  try {
-    modelCosts = await getModelCosts();
+    let modelCosts;
+    try {
+      modelCosts = await getModelCosts();
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Error fetching model costs: " + error.message },
+        { status: 500 }
+      );
+    }
+
+    if (!modelCosts[model]) {
+      return NextResponse.json(
+        { error: "Invalid model specified" },
+        { status: 400 }
+      );
+    }
+
+    const encoder = tiktoken.encoding_for_model(model);
+
+    let totalTokens = 0;
+    for (const text of dataset) {
+      totalTokens += encoder.encode(text).length;
+    }
+
+    const totalCost = totalTokens * modelCosts[model].input_cost_per_token;
+
+    const response = NextResponse.json({
+      model,
+      total_token_count: totalTokens,
+      total_cost: totalCost,
+    });
+    return setCorsHeaders(response);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Error fetching model costs: " + error.message },
+    console.error("Error in POST handler:", error);
+    const errorResponse = NextResponse.json(
+      { error: "Internal server error: " + error.message },
       { status: 500 }
     );
+    return setCorsHeaders(errorResponse);
   }
-
-  if (!modelCosts[model]) {
-    return NextResponse.json(
-      { error: "Invalid model specified" },
-      { status: 400 }
-    );
-  }
-
-  const encoder = tiktoken.encoding_for_model(model);
-
-  let totalTokens = 0;
-  for (const text of dataset) {
-    totalTokens += encoder.encode(text).length;
-  }
-
-  const totalCost = totalTokens * modelCosts[model].input_cost_per_token;
-
-  const response = NextResponse.json({
-    model,
-    total_token_count: totalTokens,
-    total_cost: totalCost,
-  });
-  return setCorsHeaders(response);
 }
 
 export async function OPTIONS(request) {
   const response = new NextResponse(null, { status: 204 });
   return setCorsHeaders(response);
 }
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
