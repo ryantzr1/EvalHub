@@ -100,9 +100,8 @@ export default function CostEstimator() {
         body: formData,
       });
 
-      const data: { fileUrl: string } = await response.json();
-
-      setResult(data.fileUrl);
+      const data = await response.json();
+      setResult(data);
     } catch (error: any) {
       setError(
         error.response?.data?.error ||
