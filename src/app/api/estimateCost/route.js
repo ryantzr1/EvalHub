@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import tiktoken from "tiktoken";
 import fetch from "node-fetch";
-import path from "path";
-import { promises as fs } from "fs";
 
 // Function to fetch model costs
 async function fetchModelCosts() {
@@ -35,11 +33,24 @@ async function getModelCosts() {
   return cachedModelCosts;
 }
 
+const setCorsHeaders = (response) => {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  return response;
+};
+
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 204 });
+  return setCorsHeaders(response);
+}
+
 export async function GET(request) {
-  return NextResponse.json(
+  const response = NextResponse.json(
     { message: "GET request received" },
     { status: 200 }
   );
+  return setCorsHeaders(response);
 }
 
 export async function POST(request) {
@@ -61,33 +72,37 @@ export async function POST(request) {
       const jsonData = await response.json();
       dataset = jsonData.map((item) => item.text);
     } catch (error) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: "Error loading Hugging Face dataset: " + error.message },
         { status: 400 }
       );
+      return setCorsHeaders(errorResponse);
     }
   } else {
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: "No file or dataset provided" },
       { status: 400 }
     );
+    return setCorsHeaders(errorResponse);
   }
 
   let modelCosts;
   try {
     modelCosts = await getModelCosts();
   } catch (error) {
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: "Error fetching model costs: " + error.message },
       { status: 500 }
     );
+    return setCorsHeaders(errorResponse);
   }
 
   if (!modelCosts[model]) {
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: "Invalid model specified" },
       { status: 400 }
     );
+    return setCorsHeaders(errorResponse);
   }
 
   const encoder = tiktoken.encoding_for_model(model);
@@ -99,9 +114,10 @@ export async function POST(request) {
 
   const totalCost = totalTokens * modelCosts[model].input_cost_per_token;
 
-  return NextResponse.json({
+  const successResponse = NextResponse.json({
     model,
     total_token_count: totalTokens,
     total_cost: totalCost,
   });
+  return setCorsHeaders(successResponse);
 }
