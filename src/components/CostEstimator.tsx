@@ -73,13 +73,15 @@ export default function CostEstimator() {
 
     try {
       const response = await axios.post("/api/estimateCost", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
       setResult(response.data);
     } catch (error) {
       setError(
         error.response?.data?.error ||
-          "An error occurred while estimating the cost."
+        "An error occurred while estimating the cost."
       );
     } finally {
       setLoading(false);
