@@ -42,12 +42,8 @@ export default function CostEstimator() {
 
   const fetchDatasetRows = async (url: string): Promise<string[]> => {
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.rows.map((item: any) => item.row.text);
+      const response = await axios.get(url);
+      return response.data.rows.map((item: any) => item.row.text);
     } catch (error) {
       throw new Error("Error fetching dataset rows: " + error.message);
     }
@@ -95,13 +91,13 @@ export default function CostEstimator() {
     formData.append("model", model);
 
     try {
-      const response = await fetch("/api/estimateCost", {
-        method: "POST",
-        body: formData,
+      const response = await axios.post("/api/estimateCost", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      const data = await response.json();
-      setResult(data);
+      setResult(response.data);
     } catch (error: any) {
       setError(
         error.response?.data?.error ||

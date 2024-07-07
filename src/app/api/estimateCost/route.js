@@ -1,22 +1,15 @@
 import { NextResponse } from "next/server";
-import fetch from "node-fetch";
-import { get_encoding, encoding_for_model } from "tiktoken";
 
 // Function to fetch model costs
 async function fetchModelCosts() {
-  try {
-    const MODEL_COSTS_URL =
-      "https://raw.githubusercontent.com/ryantzr1/EvalHub/main/src/lib/model_prices.json";
+  const MODEL_COSTS_URL =
+    "https://raw.githubusercontent.com/ryantzr1/EvalHub/main/src/lib/model_prices.json";
 
-    const response = await fetch(MODEL_COSTS_URL);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching model costs:", error);
-    throw new Error("Failed to load model costs.");
+  const response = await fetch(MODEL_COSTS_URL);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
+  return await response.json();
 }
 
 // Use a simple in-memory cache to avoid fetching the costs for every request
@@ -43,6 +36,35 @@ function setCorsHeaders(response) {
   return response;
 }
 
+async function countTokensBatch(dataset, model) {
+  const TOKENIZER_URL = "http://128.199.190.235:4321/api/tokenize-batch";
+
+  try {
+    console.log(`Sending request to tokenizer API at ${TOKENIZER_URL}`);
+    const response = await fetch(TOKENIZER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ dataset, model }),
+    });
+
+    if (!response.ok) {
+      console.error(`Error from tokenizer API: ${response.statusText}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(
+      `Received response from tokenizer API: ${JSON.stringify(data)}`
+    );
+    return data.total_token_count;
+  } catch (error) {
+    console.error("Error in countTokensBatch:", error);
+    throw error;
+  }
+}
+
 export async function GET(request) {
   const response = NextResponse.json(
     { message: "GET request received" },
@@ -66,12 +88,14 @@ export async function POST(request) {
       try {
         dataset = JSON.parse(huggingfaceDataset);
       } catch (error) {
+        console.error("Error parsing Hugging Face dataset:", error);
         return NextResponse.json(
           { error: "Error parsing Hugging Face dataset: " + error.message },
           { status: 400 }
         );
       }
     } else {
+      console.error("No file or dataset provided");
       return NextResponse.json(
         { error: "No file or dataset provided" },
         { status: 400 }
@@ -82,6 +106,7 @@ export async function POST(request) {
     try {
       modelCosts = await getModelCosts();
     } catch (error) {
+      console.error("Error fetching model costs:", error);
       return NextResponse.json(
         { error: "Error fetching model costs: " + error.message },
         { status: 500 }
@@ -89,23 +114,14 @@ export async function POST(request) {
     }
 
     if (!modelCosts[model]) {
+      console.error("Invalid model specified:", model);
       return NextResponse.json(
         { error: "Invalid model specified" },
         { status: 400 }
       );
     }
 
-    let encoder;
-    try {
-      encoder = encoding_for_model(model);
-    } catch (error) {
-      encoder = get_encoding("cl100k_base"); // fallback encoding
-    }
-
-    let totalTokens = 0;
-    for (const text of dataset) {
-      totalTokens += encoder.encode(text).length;
-    }
+    const totalTokens = await countTokensBatch(dataset, model);
 
     const totalCost = totalTokens * modelCosts[model].input_cost_per_token;
 
