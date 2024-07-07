@@ -1,22 +1,21 @@
 import { NextResponse } from "next/server";
-import fetch from "node-fetch";
-import { get_encoding, encoding_for_model } from "tiktoken";
+// @ts-expect-error
+import wasm from "tiktoken/lite/tiktoken_bg.wasm?module";
+import model from "tiktoken/encoders/cl100k_base.json";
+import { init, Tiktoken } from "tiktoken/lite/init";
+
+export const config = { runtime: "edge" };
 
 // Function to fetch model costs
 async function fetchModelCosts() {
-  try {
-    const MODEL_COSTS_URL =
-      "https://raw.githubusercontent.com/ryantzr1/EvalHub/main/src/lib/model_prices.json";
+  const MODEL_COSTS_URL =
+    "https://raw.githubusercontent.com/ryantzr1/EvalHub/main/src/lib/model_prices.json";
 
-    const response = await fetch(MODEL_COSTS_URL);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching model costs:", error);
-    throw new Error("Failed to load model costs.");
+  const response = await fetch(MODEL_COSTS_URL);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
+  return await response.json();
 }
 
 // Use a simple in-memory cache to avoid fetching the costs for every request
@@ -53,10 +52,18 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    // Initialize tiktoken with WASM
+    await init((imports) => WebAssembly.instantiate(wasm, imports));
+    const encoding = new Tiktoken(
+      model.bpe_ranks,
+      model.special_tokens,
+      model.pat_str
+    );
+
     const formData = await request.formData();
     const file = formData.get("file");
     const huggingfaceDataset = formData.get("huggingface_dataset");
-    const model = formData.get("model") || "gpt-4";
+    const modelName = formData.get("model") || "gpt-4";
 
     let dataset;
     if (file) {
@@ -88,29 +95,25 @@ export async function POST(request) {
       );
     }
 
-    if (!modelCosts[model]) {
+    if (!modelCosts[modelName]) {
       return NextResponse.json(
         { error: "Invalid model specified" },
         { status: 400 }
       );
     }
 
-    let encoder;
-    try {
-      encoder = encoding_for_model(model);
-    } catch (error) {
-      encoder = get_encoding("cl100k_base"); // fallback encoding
-    }
-
     let totalTokens = 0;
     for (const text of dataset) {
-      totalTokens += encoder.encode(text).length;
+      totalTokens += encoding.encode(text).length;
     }
 
-    const totalCost = totalTokens * modelCosts[model].input_cost_per_token;
+    const totalCost = totalTokens * modelCosts[modelName].input_cost_per_token;
+
+    // Free the encoding when done
+    encoding.free();
 
     const response = NextResponse.json({
-      model,
+      model: modelName,
       total_token_count: totalTokens,
       total_cost: totalCost,
     });
