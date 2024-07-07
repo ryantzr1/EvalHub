@@ -1,7 +1,0 @@
-{
-    "functions": {
-      "api/python-tokenizer.py": {
-        "runtime": "python3.9"
-      }
-    }
-  }
