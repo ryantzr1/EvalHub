@@ -4,7 +4,7 @@ import wasm from "tiktoken/lite/tiktoken_bg.wasm?module";
 import model from "tiktoken/encoders/cl100k_base.json";
 import { init, Tiktoken } from "tiktoken/lite/init";
 
-export const config = { runtime: "edge" };
+export const runtime = "edge";
 
 // Function to fetch model costs
 async function fetchModelCosts() {
