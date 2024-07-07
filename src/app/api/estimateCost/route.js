@@ -37,7 +37,6 @@ function setCorsHeaders(response) {
 }
 
 async function countTokensFromDataset(dataset, model) {
-  console.log(dataset);
   const TOKENIZER_URL = "http://128.199.190.235:4321/api/tokenize-dataset";
 
   try {

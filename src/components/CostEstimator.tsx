@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Loader2, Upload, Link } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type ModelOptions = string[];
 
@@ -40,23 +41,23 @@ export default function CostEstimator() {
     fetchModelOptions();
   }, []);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFile(e.target.files[0]);
-      setDatasetUrl(""); // Clear dataset URL if a file is selected
+      setDatasetUrl("");
     }
   };
 
-  const handleDatasetUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleDatasetUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDatasetUrl(e.target.value);
-    setFile(null); // Clear file if a dataset URL is entered
+    setFile(null);
   };
 
   const handleModelChange = (value: string) => {
     setModel(value);
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -64,8 +65,20 @@ export default function CostEstimator() {
 
     let dataset: any[] = [];
     if (file) {
-      const fileContent = await file.text();
-      dataset = fileContent.split("\n");
+      try {
+        const fileContent = await file.text();
+        try {
+          // First, try to parse as JSON
+          dataset = JSON.parse(fileContent);
+        } catch (jsonError) {
+          // If JSON parsing fails, treat as line-separated text
+          dataset = fileContent.split('\n').filter(line => line.trim() !== '').map(line => ({ row: { text: line } }));
+        }
+      } catch (e) {
+        setError("Error reading file.");
+        setLoading(false);
+        return;
+      }
     } else if (datasetUrl) {
       try {
         const response = await axios.get(datasetUrl);
@@ -80,19 +93,12 @@ export default function CostEstimator() {
       setLoading(false);
       return;
     }
-
-    const payload = {
-      dataset,
-      model,
-    };
+    const payload = { dataset, model };
 
     try {
       const response = await axios.post("/api/estimateCost", payload, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-
       setResult(response.data);
     } catch (error: any) {
       setError(
@@ -104,84 +110,98 @@ export default function CostEstimator() {
     }
   };
 
+
   return (
-    <div>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            htmlFor="file"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Upload Dataset File
-          </label>
-          <input
-            type="file"
-            id="file"
-            onChange={handleFileChange}
-            className="mt-1 block w-full text-sm text-gray-500
-                       file:mr-4 file:py-2 file:px-4
-                       file:rounded-full file:border-0
-                       file:text-sm file:font-semibold
-                       file:bg-blue-50 file:text-blue-700
-                       hover:file:bg-blue-100"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="datasetUrl"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Enter Hugging Face Dataset URL
-          </label>
-          <input
-            type="text"
-            id="datasetUrl"
-            value={datasetUrl}
-            onChange={handleDatasetUrlChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-            placeholder="e.g., https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=0"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="model"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Select Model
-          </label>
-          <Select onValueChange={handleModelChange} value={model}>
-            <SelectTrigger className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 flex items-center justify-between px-4 py-2 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-              {model}
-            </SelectTrigger>
-            <SelectContent>
-              {modelOptions.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          {loading ? "Estimating..." : "Estimate Cost"}
-        </button>
-      </form>
-      {error && <p className="mt-4 text-red-600">{error}</p>}
-      {result && (
-        <div className="mt-4 p-4 bg-green-100 rounded-md">
-          <h3 className="font-semibold text-green-800">Estimation Result:</h3>
-          <p>Model: {result.model}</p>
-          <p>Total Tokens: {result.total_token_count}</p>
-          <p>
-            Estimated Cost: $
-            {result.total_cost ? result.total_cost.toFixed(6) : "N/A"}
-          </p>
-        </div>
-      )}
-    </div>
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Cost Estimator</CardTitle>
+        <CardDescription>
+          Estimate the cost of processing your dataset with various AI models.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="file">Upload Dataset File</Label>
+            <div className="flex items-center space-x-2">
+              <Input
+                type="file"
+                id="file"
+                onChange={handleFileChange}
+                className="flex-grow"
+              />
+              <Button type="button" variant="outline" size="icon">
+                <Upload className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="datasetUrl">Hugging Face Dataset URL</Label>
+            <div className="flex items-center space-x-2">
+              <Input
+                type="text"
+                id="datasetUrl"
+                value={datasetUrl}
+                onChange={handleDatasetUrlChange}
+                placeholder="e.g., https://datasets-server.huggingface.co/rows?dataset=..."
+                className="flex-grow"
+              />
+              <Button type="button" variant="outline" size="icon">
+                <Link className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="model">Select Model</Label>
+            <Select onValueChange={handleModelChange} value={model}>
+              <SelectTrigger id="model" className="w-full">
+                <SelectValue placeholder="Select a model" />
+              </SelectTrigger>
+              <SelectContent>
+                {modelOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Estimating...
+              </>
+            ) : (
+              "Estimate Cost"
+            )}
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="flex flex-col items-stretch">
+        {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {result && (
+          <Alert variant="default" className="mt-4">
+            <AlertTitle>Estimation Result</AlertTitle>
+            <AlertDescription>
+              <p>Model: {result.model}</p>
+              <p>Total Tokens: {result.total_token_count.toLocaleString()}</p>
+              <p>
+                Estimated Cost: $
+                {result.total_cost ? result.total_cost.toFixed(6) : "N/A"}
+              </p>
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardFooter>
+    </Card>
   );
 }
