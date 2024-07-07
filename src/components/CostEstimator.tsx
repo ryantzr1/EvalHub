@@ -40,15 +40,6 @@ export default function CostEstimator() {
     fetchModelOptions();
   }, []);
 
-  const fetchDatasetRows = async (url: string): Promise<string[]> => {
-    try {
-      const response = await axios.get(url);
-      return response.data.rows.map((item: any) => item.row.text);
-    } catch (error) {
-      throw new Error("Error fetching dataset rows: " + error.message);
-    }
-  };
-
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFile(e.target.files[0]);
@@ -71,13 +62,14 @@ export default function CostEstimator() {
     setError("");
     setResult(null);
 
-    const formData = new FormData();
+    let dataset: any[] = [];
     if (file) {
-      formData.append("file", file);
+      const fileContent = await file.text();
+      dataset = fileContent.split("\n");
     } else if (datasetUrl) {
       try {
-        const dataset = await fetchDatasetRows(datasetUrl);
-        formData.append("huggingface_dataset", JSON.stringify(dataset));
+        const response = await axios.get(datasetUrl);
+        dataset = response.data.rows;
       } catch (error) {
         setError("Error loading Hugging Face dataset: " + error.message);
         setLoading(false);
@@ -88,12 +80,16 @@ export default function CostEstimator() {
       setLoading(false);
       return;
     }
-    formData.append("model", model);
+
+    const payload = {
+      dataset,
+      model,
+    };
 
     try {
-      const response = await axios.post("/api/estimateCost", formData, {
+      const response = await axios.post("/api/estimateCost", payload, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       });
 

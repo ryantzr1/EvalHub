@@ -36,8 +36,9 @@ function setCorsHeaders(response) {
   return response;
 }
 
-async function countTokensBatch(dataset, model) {
-  const TOKENIZER_URL = "http://128.199.190.235:4321/api/tokenize-batch";
+async function countTokensFromDataset(dataset, model) {
+  console.log(dataset);
+  const TOKENIZER_URL = "http://128.199.190.235:4321/api/tokenize-dataset";
 
   try {
     console.log(`Sending request to tokenizer API at ${TOKENIZER_URL}`);
@@ -60,7 +61,7 @@ async function countTokensBatch(dataset, model) {
     );
     return data.total_token_count;
   } catch (error) {
-    console.error("Error in countTokensBatch:", error);
+    console.error("Error in countTokensFromDataset:", error);
     throw error;
   }
 }
@@ -75,29 +76,14 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const formData = await request.formData();
-    const file = formData.get("file");
-    const huggingfaceDataset = formData.get("huggingface_dataset");
-    const model = formData.get("model") || "gpt-4";
+    const body = await request.json();
+    const dataset = body.dataset;
+    const model = body.model;
 
-    let dataset;
-    if (file) {
-      const fileContent = await file.text();
-      dataset = fileContent.split("\n");
-    } else if (huggingfaceDataset) {
-      try {
-        dataset = JSON.parse(huggingfaceDataset);
-      } catch (error) {
-        console.error("Error parsing Hugging Face dataset:", error);
-        return NextResponse.json(
-          { error: "Error parsing Hugging Face dataset: " + error.message },
-          { status: 400 }
-        );
-      }
-    } else {
-      console.error("No file or dataset provided");
+    if (!dataset || !model) {
+      console.error("Dataset or model not provided");
       return NextResponse.json(
-        { error: "No file or dataset provided" },
+        { error: "Dataset or model not provided" },
         { status: 400 }
       );
     }
@@ -121,8 +107,7 @@ export async function POST(request) {
       );
     }
 
-    const totalTokens = await countTokensBatch(dataset, model);
-
+    const totalTokens = await countTokensFromDataset(dataset, model);
     const totalCost = totalTokens * modelCosts[model].input_cost_per_token;
 
     const response = NextResponse.json({
