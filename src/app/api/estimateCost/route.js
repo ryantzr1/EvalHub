@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import tiktoken from "tiktoken";
 import fetch from "node-fetch";
+import { get_encoding, encoding_for_model } from "tiktoken";
 
 // Function to fetch model costs
 async function fetchModelCosts() {
@@ -95,7 +95,12 @@ export async function POST(request) {
       );
     }
 
-    const encoder = tiktoken.encoding_for_model(model);
+    let encoder;
+    try {
+      encoder = encoding_for_model(model);
+    } catch (error) {
+      encoder = get_encoding("cl100k_base"); // fallback encoding
+    }
 
     let totalTokens = 0;
     for (const text of dataset) {
