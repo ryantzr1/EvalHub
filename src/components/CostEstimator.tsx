@@ -112,7 +112,7 @@ export default function CostEstimator() {
       <CardContent className="mt-4">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="file">Upload Dataset File</Label>
+            <Label htmlFor="file">Upload Dataset File (JSON, JSONL, TXT)</Label>
             <div className="flex it ems-center space-x-2">
               <Input
                 type="file"
