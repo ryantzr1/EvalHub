@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectValue,
 } from "@/components/ui/select";
 
 interface Metric {
@@ -80,54 +81,59 @@ export default function Component() {
       <header className="mb-12">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-2 text-blue-600 dark:text-blue-400">EvalHub 🚀</h1>
-          <p className="text-xl mb-4 text-gray-700 dark:text-gray-300">
+          <p className="text-xl mb-4 text-gray-700 ">
             Discover Evaluation Benchmarks for your models.
           </p>
-          <p className="text-md mb-4 text-gray-600 dark:text-gray-400">
+          <p className="text-md mb-4 text-gray-600 ">
             Explore various evaluation metrics here and then head over to the
-            <a href="https://github.com/EleutherAI/lm-evaluation-harness/tree/main" target="_blank" rel="noopener noreferrer" className="text-blue-500 dark:text-blue-300"> lm-evaluation-harness</a> repository by EleutherAI to evaluate your models.
+            <a href="https://github.com/EleutherAI/lm-evaluation-harness/tree/main" target="_blank" rel="noopener noreferrer" className="text-blue-500 "> lm-evaluation-harness</a> repository by EleutherAI to evaluate your models.
           </p>
         </div>
       </header>
-      <div className="mb-8">
-        <Input
-          type="search"
-          placeholder="🔍 Search metrics..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full max-w-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-        />
+      <div className="flex items-center space-x-4 mb-8">
+        <div className="flex-1">
+          <Input
+            type="search"
+            placeholder="🔍 Search metrics..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full max-w-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+          />
+        </div>
+        <div className="flex-1">
+          <Select onValueChange={setCategory} value={category}>
+            <SelectTrigger className="w-full max-w-md block rounded-md border border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 flex items-center justify-between px-4 py-2 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id.toString()}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex-1">
+          <Select onValueChange={setUseCase} value={useCase}>
+            <SelectTrigger className="w-full max-w-md block rounded-md border border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 flex items-center justify-between px-4 py-2 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <SelectValue placeholder="All Use Cases" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Use Cases</SelectItem>
+              {useCases.map((uc) => (
+                <SelectItem key={uc} value={uc}>
+                  {uc}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-      <div className="mb-8">
-        <Select onValueChange={setCategory} value={category}>
-          <SelectTrigger className="w-full max-w-md mt-1 block rounded-md border border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 flex items-center justify-between px-4 py-2 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-            {category === "all" ? "All Categories" : categories.find(cat => cat.id === parseInt(category, 10))?.name}
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id.toString()}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="mb-8">
-        <Select onValueChange={setUseCase} value={useCase}>
-          <SelectTrigger className="w-full max-w-md mt-1 block rounded-md border border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 flex items-center justify-between px-4 py-2 bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-            {useCase === "all" ? "All Use Cases" : useCase}
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Use Cases</SelectItem>
-            {useCases.map((uc) => (
-              <SelectItem key={uc} value={uc}>
-                {uc}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+
+
+
       <MetricList metrics={filteredMetrics} citationCounts={citationCounts} />
       <footer className="mt-8 text-center text-gray-600 dark:text-gray-400">
         <p>&copy; 2024 EvalHub</p>
@@ -135,6 +141,6 @@ export default function Component() {
       <div className="fixed bottom-8 right-8">
         <BenchmarkForm categories={categories} fetchMetrics={fetchMetrics} />
       </div>
-    </div>
+    </div >
   );
 }

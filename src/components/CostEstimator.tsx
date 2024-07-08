@@ -1,14 +1,13 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2, Upload, Link } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 type ModelOptions = string[];
 
@@ -68,10 +67,8 @@ export default function CostEstimator() {
       try {
         const fileContent = await file.text();
         try {
-          // First, try to parse as JSON
           dataset = JSON.parse(fileContent);
         } catch (jsonError) {
-          // If JSON parsing fails, treat as line-separated text
           dataset = fileContent.split('\n').filter(line => line.trim() !== '').map(line => ({ row: { text: line } }));
         }
       } catch (e) {
@@ -110,20 +107,13 @@ export default function CostEstimator() {
     }
   };
 
-
   return (
     <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Cost Estimator</CardTitle>
-        <CardDescription>
-          Estimate the cost of processing your dataset with various AI models.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="mt-4">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="file">Upload Dataset File</Label>
-            <div className="flex items-center space-x-2">
+            <div className="flex it ems-center space-x-2">
               <Input
                 type="file"
                 id="file"
@@ -144,7 +134,7 @@ export default function CostEstimator() {
                 id="datasetUrl"
                 value={datasetUrl}
                 onChange={handleDatasetUrlChange}
-                placeholder="e.g., https://datasets-server.huggingface.co/rows?dataset=..."
+                placeholder="e.g., https://datasets-server.huggingface.co/rows?dataset=ucinlp%2Fdrop&config=default&split=train&offset=0&length=100"
                 className="flex-grow"
               />
               <Button type="button" variant="outline" size="icon">
