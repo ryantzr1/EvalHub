@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useFetchMetrics } from "@/components/hooks/useFetchMetrics";
@@ -9,6 +9,7 @@ import MetricList from "@/components/hooks/MetricList";
 import BenchmarkForm from "@/components/hooks/BenchmarkForm";
 import { AnimatePresence, motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import axios from "axios";
 import {
   Select,
   SelectTrigger,
@@ -18,12 +19,14 @@ import {
 } from "@/components/ui/select";
 
 // Custom TooltipWrapper component
-const TooltipWrapper = ({ content, children }: { content: string, children: React.ReactNode }) => (
+const TooltipWrapper = forwardRef(({ content, children }, ref) => (
   <Tooltip>
-    <TooltipTrigger asChild>{children}</TooltipTrigger>
+    <TooltipTrigger ref={ref} asChild>{children}</TooltipTrigger>
     <TooltipContent>{content}</TooltipContent>
   </Tooltip>
-);
+));
+
+TooltipWrapper.displayName = 'TooltipWrapper';
 
 interface Metric {
   id: string;
@@ -67,6 +70,26 @@ export default function EvalHubDashboard() {
     setUseCase("all");
     setPage(1);
   }, [category, metrics]);
+
+  useEffect(() => {
+    const fetchCitationCounts = async () => {
+      const newCitationCounts: { [key: string]: number } = {};
+      for (const metric of metrics) {
+        if (metric.paper_link) {
+          try {
+            const response = await axios.get(`https://api.semanticscholar.org/graph/v1/paper/URL:${metric.paper_link}?fields=citationCount`);
+            newCitationCounts[metric.id] = response.data.citationCount || 0;
+          } catch (error) {
+            console.error(`Error fetching citation count for ${metric.name}:`, error);
+            newCitationCounts[metric.id] = 0;
+          }
+        }
+      }
+      setCitationCounts(newCitationCounts);
+    };
+
+    fetchCitationCounts();
+  }, [metrics]);
 
   const isFiltering = searchTerm !== "" || category !== "all" || useCase !== "all";
 
