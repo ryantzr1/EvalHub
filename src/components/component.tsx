@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, forwardRef } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useFetchMetrics } from "@/components/hooks/useFetchMetrics";
@@ -19,14 +19,12 @@ import {
 } from "@/components/ui/select";
 
 // Custom TooltipWrapper component
-const TooltipWrapper = forwardRef(({ content, children }, ref) => (
+const TooltipWrapper = ({ content, children }: { content: string, children: React.ReactNode }) => (
   <Tooltip>
-    <TooltipTrigger ref={ref} asChild>{children}</TooltipTrigger>
+    <TooltipTrigger asChild>{children}</TooltipTrigger>
     <TooltipContent>{content}</TooltipContent>
   </Tooltip>
-));
-
-TooltipWrapper.displayName = 'TooltipWrapper';
+);
 
 interface Metric {
   id: string;
