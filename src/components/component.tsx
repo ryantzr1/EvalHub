@@ -57,6 +57,35 @@ export default function EvalHubDashboard() {
   const categories: Category[] = useFetchCategories();
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
+  const [typedText, setTypedText] = useState("");
+  const [showCursor, setShowCursor] = useState(true);
+
+
+  useEffect(() => {
+    const text = "Discover Evaluation Benchmarks for your models.";
+    let i = 0;
+    let typingSpeed = 70; // Slightly slower typing speed
+    let cursorBlinkSpeed = 530; // Blinking speed for cursor
+
+    const typingEffect = setInterval(() => {
+      if (i < text.length) {
+        setTypedText((prev) => prev + text.charAt(i));
+        i++;
+      } else {
+        clearInterval(typingEffect);
+      }
+    }, typingSpeed);
+
+    const cursorEffect = setInterval(() => {
+      setShowCursor((prev) => !prev);
+    }, cursorBlinkSpeed);
+
+    return () => {
+      clearInterval(typingEffect);
+      clearInterval(cursorEffect);
+    };
+  }, []);
+
 
   useEffect(() => {
     const filteredUseCases = [...new Set(metrics
@@ -121,18 +150,23 @@ export default function EvalHubDashboard() {
       <div className="container mx-auto px-4 md:px-6 py-12">
         <header className="mb-12">
           <div className="text-center">
-            <h1 className="text-4xl font-bold mb-2 text-blue-600 dark:text-blue-400">EvalHub 🚀</h1>
-            <p className="text-xl mb-4 text-gray-700 dark:text-gray-300">
-              Discover Evaluation Benchmarks for your models.
+            <h1 className="text-4xl font-bold mb-2">
+              <span className="bg-gradient-to-r from-blue-600 to-blue-400 text-transparent bg-clip-text dark:from-blue-400 dark:to-blue-200">
+                EvalHub
+              </span>{" "}
+              🚀
+            </h1>
+            <p className="text-xl mb-4 text-gray-600 dark:text-gray-500">
+              {typedText}
             </p>
             <p className="text-md mb-4 text-gray-600 dark:text-gray-400">
-              Explore various evaluation metrics here and then head over to the
+              Explore various evaluation metrics here, then head over to the
               <a href="https://github.com/EleutherAI/lm-evaluation-harness/tree/main" target="_blank" rel="noopener noreferrer" className="text-blue-500"> lm-evaluation-harness</a> repository by EleutherAI to evaluate your models.
             </p>
           </div>
         </header>
 
-        <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mb-8">
+        <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-8">
           <TooltipWrapper content="Search for metrics by name">
             <Input
               type="search"
@@ -175,7 +209,12 @@ export default function EvalHubDashboard() {
         </div>
 
         <div className="flex justify-between items-center mb-4">
-          <Button onClick={clearFilters} variant="outline" size="sm">
+          <Button
+            onClick={clearFilters}
+            variant="outline"
+            size="sm"
+            className="border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
             Clear Filters
           </Button>
         </div>
@@ -212,15 +251,17 @@ export default function EvalHubDashboard() {
                   disabled={page === 1}
                   variant="outline"
                   size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   Previous
                 </Button>
-                <span>Page {page} of {Math.ceil(filteredMetrics.length / itemsPerPage)}</span>
+                <span className="text-gray-700 dark:text-gray-300">Page {page} of {Math.ceil(filteredMetrics.length / itemsPerPage)}</span>
                 <Button
                   onClick={() => setPage(page + 1)}
                   disabled={page >= Math.ceil(filteredMetrics.length / itemsPerPage)}
                   variant="outline"
                   size="sm"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   Next
                 </Button>
